@@ -1,4 +1,4 @@
-intro = """      
+print("""      
  ▄▄▄        ██▀███    ▄████▄    ██░ ██    █████ ▒██▓      ▒█████    █     █░                                                                        
 ▒████▄     ▓██ ▒ ██ ▒▒██▀ ▀█   ▓██░ ██▒ ▓██   ▒ ▓██▒     ▒██▒  ██▒ ▓█░ █ ░█░                                                                        
 ▒██  ▀█▄   ▓██ ░▄█  ▒▒▓█    ▄  ▒██▀▀██░ ▒████ ░ ▒██░     ▒██░  ██▒ ▒█░ █ ░█                                                                         
@@ -8,12 +8,5 @@ intro = """
   ▒   ▒▒ ░   ░▒ ░ ▒ ░  ░  ▒     ▒ ░▒░ ░  ░      ░ ░ ▒  ░   ░ ▒ ▒░    ▒ ░ ░                                                                          
   ░   ▒      ░░   ░  ░          ░  ░░ ░  ░ ░      ░ ░    ░ ░ ░ ▒     ░   ░                                                                          
       ░  ░    ░      ░ ░        ░  ░  ░             ░  ░     ░ ░       ░                                                                            
-  
----------------------------------------------------------------------------------------------------------------
-ArchFlow. (Architecture Flow)
-Tool for a Data Architecture Simulation using ABMs (Agent Based Modeling)
 
-Why this Font?
-        If you leave it ON, your device will drip a molten metal.
-"""
-# print(intro)
+""")
