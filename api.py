@@ -35,6 +35,7 @@ def update_node_color():
 @cross_origin()
 def get_nodes_n_links():
     data = open("data/nodes.json")
+    # data = open("functions/converters/graph_with_random_nodes.json")
     data = json.loads(data.read())
 
     return jsonify(data)
