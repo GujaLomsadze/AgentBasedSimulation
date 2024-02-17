@@ -6,15 +6,16 @@ from typing import Dict, Optional
 class Node:
     name: str
     type: str
-    ip: str
-    port: int
+    ip: str = None
+    port: int = None
     cpu_usage: float = 0.0  # Percentage
     ram_usage: float = 0.0  # GB
     disk_usage: float = 0.0  # GB
+    disk_capacity: int = 50  # GB
+    rps: Optional[float] = 1_000  # Requests Per Second
+    qps: Optional[float] = 1_000  # Queries Per Second
+    tps: Optional[float] = 1_000  # Transactions Per Second
     retention_time_hours: Optional[int] = None  # Retention time in hours
-    rps: Optional[float] = None  # Requests Per Second
-    qps: Optional[float] = None  # Queries Per Second
-    tps: Optional[float] = None  # Transactions Per Second
     additional_metrics: Dict[str, float] = field(default_factory=dict)
 
 
