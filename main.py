@@ -5,5 +5,4 @@ adjacency_matrix = json_to_matrix("data/nodes.json")
 
 # get_graph_stats(adjacency_matrix=adjacency_matrix)
 
-pg?
 

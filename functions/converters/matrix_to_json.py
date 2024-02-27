@@ -47,7 +47,6 @@ def matrix_to_json_with_random_names(matrix, output_file_path, name_length=5):
         json.dump(data, f, ensure_ascii=False, indent=4)
 
 
-"""
 # Example usage
 if __name__ == "__main__":
     matrix = [[0, 0.2, 0, 0, 0, 0.2, 0, 0, 0, 0, 0, 0, 0, 0, 0.2, 0, 0, 0, 0, 0.1, 0, 0, 0, 0, 0, 0, 0.3, 0, 0, 0],
@@ -83,4 +82,3 @@ if __name__ == "__main__":
 
     output_file_path = "graph_with_random_nodes.json"
     matrix_to_json_with_random_names(matrix, output_file_path)
-"""
