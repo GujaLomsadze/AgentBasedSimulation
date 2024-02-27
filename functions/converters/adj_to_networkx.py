@@ -10,6 +10,9 @@ def create_directed_graph_from_adj_matrix(adj_matrix_in):
     :return: NetworkX Object
     """
     graph = nx.DiGraph()
+
+    adj_matrix_in = np.array(adj_matrix_in)
+
     num_nodes = adj_matrix_in.shape[0]
 
     # Add nodes
