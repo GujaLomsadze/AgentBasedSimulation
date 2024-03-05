@@ -232,7 +232,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Reload data every 5 seconds (5000 milliseconds)
     var intervalHandle = setInterval(function () {
         chart.reloadData();
-    }, 500);
+    }, 75);
 
     function disposeDemo() {
         clearInterval(intervalHandle); // Clear the interval

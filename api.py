@@ -6,13 +6,17 @@ Super Basic REST-API endpoint to draw a dynamic Node graph
 
 import json
 
+import redis
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS, cross_origin
 from functions import *
+from functions.redis_wrapped.json_to_redis import reconstruct_json_from_redis
 
 app = Flask(__name__, static_url_path='/static')
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
+
+redis_connection = redis.Redis(host="localhost", port=6379, decode_responses=True)
 
 
 # Route to render the HTML template
@@ -34,9 +38,7 @@ def update_node_color():
 @app.route('/get_nodes_n_links')
 @cross_origin()
 def get_nodes_n_links():
-    data = open("data/nodes.json")
-    # data = open("functions/converters/graph_with_random_nodes.json")
-    data = json.loads(data.read())
+    data = reconstruct_json_from_redis(redis_conn=redis_connection)
 
     return jsonify(data)
 

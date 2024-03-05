@@ -46,6 +46,7 @@ def json_to_matrix(file_path: str):
         data = json.load(file)
 
     nodes = [node["id"] for node in data['nodes']]
+    node_names = [node["style"]["label"] for node in data['nodes']]
 
     # Assuming each link now includes a 'weight' key
     edges = [[link["from"], link["to"], link.get("weight", 1)] for link in
@@ -53,4 +54,4 @@ def json_to_matrix(file_path: str):
 
     adjacency_matrix = generate_adjacency_matrix(nodes, edges)
 
-    return adjacency_matrix
+    return adjacency_matrix, nodes, node_names

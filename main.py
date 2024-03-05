@@ -1,47 +1,41 @@
-import networkx as nx
-import numpy as np
-from matplotlib import pyplot as plt
+import random
 
-from entities.nodes.classes import PostgreSQLInstance, NodejsService
-from functions.converters.json_to_matrix import json_to_matrix
 from functions.converters.adj_to_networkx import create_directed_graph_from_adj_matrix
+from functions.converters.json_to_matrix import json_to_matrix
+from functions.node_data_manipulation.change import update_node_style_parameter_in_redis
+from functions.readers.json_readers import read_json_file
+from functions.redis_wrapped.json_to_redis import json_to_redis, reconstruct_json_from_redis
+from functions.redis_wrapped.conn import get_redis_connection
 
-adjacency_matrix = json_to_matrix("data/nodes.json")
+json_nodes_filename = "data/nodes.json"
 
-graph = create_directed_graph_from_adj_matrix(adj_matrix_in=adjacency_matrix)
+json_data = read_json_file(json_nodes_filename)
 
+adj_matrix, nodes, node_names = json_to_matrix(json_nodes_filename)
 
-def choose_next_node(G, cur_node):
-    """
-    Function to choose a next node based on a Probability from weights.
-    Simulates Markov's Chain
-    :param G: Graph
-    :param cur_node: Current node name
-    :return: Net node or None
-    """
-    neighbors = list(G.successors(cur_node))
+node_name_id = {key: value for key, value in zip(node_names, nodes)}
 
-    if not neighbors:
-        return None  # Depth stopped here, no more continuation
+graph = create_directed_graph_from_adj_matrix(adj_matrix_in=adj_matrix, node_names=node_names)
 
-    weights = [G[cur_node][neighbor]['weight'] for neighbor in neighbors]
+r = get_redis_connection()
 
-    # Convert weights to probabilities
-    total_weight = sum(weights)
-    probabilities = [weight / total_weight for weight in weights]
+# Move Json Data to Redis for faster traversal and change
+json_to_redis(json_data=json_data, redis_conn=r)
 
-    # Choose next node based on probabilities
-    print(neighbors, probabilities)
-    next_node = np.random.choice(neighbors, p=probabilities)
-    return next_node
+node_name = "FE"  # The node ID you want to update
+parameter = "fillColor"  # Specify the parameter within style you want to change
 
+# new_value = "#ff0000"  # Specify the new color
+# new_value = "#42f545"  # Specify the new color
 
-current_node = 1
+colors = ["#ff0000", "#42f545"]
 
-steps = 11
-print(f"Starting at node {current_node}")
+node_id = node_name_id[node_name]
+nodes_g = list(graph.nodes)
 
-for _ in range(steps):
-    current_node = choose_next_node(graph, current_node)
+for _ in range(1_000_000):
+    random_color = random.choice(colors)
+    random_graph_name = random.choice(nodes_g)
+    random_node_id = node_name_id[random_graph_name]
 
-    print(f"Moved to node {current_node}")
+    update_node_style_parameter_in_redis(r, random_node_id, parameter, random_color)
