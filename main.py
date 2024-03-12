@@ -70,7 +70,7 @@ for path in traverse_paths:
 
         time.sleep(1)
         for edge_to_color in edge_ids:
-            update_link_style_parameter_in_redis(r, link_id=edge_to_color, parameter=parameter, new_value=0)
+            update_link_style_parameter_in_redis(r, link_id=edge_to_coglor, parameter=parameter, new_value=0)
 
     if intensity:
         for edge_to_color in edge_ids:
