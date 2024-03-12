@@ -122,44 +122,45 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function linkStyle(link) {
         link.length = 1;
-        link.radius = 1;
-        link.fromDecoration = "circle";
+        link.radius = 10;
+        // link.fromDecoration = "circle";
         link.toDecoration = "hollow arrow";
 
-        link.fillColor = "#FFFFFF";
+        var highlighted_or_not = link.data.is_highlighted || 0; // Default to 0 if undefined
 
-        var trafficWeight = link.data.traffic; // Assuming 'traffic' is a measure of traffic intensity
+        // Dynamic color scale based on 'is_highlighted'
+        var startColor = {r: 255, g: 255, b: 255}; // White
+        var endColor = {r: 255, g: 0, b: 0}; // Red
+        var colorRatio = highlighted_or_not > 1000 ? 1 : highlighted_or_not / 1000; // Cap at 10 for full intensity
 
-        var link_color = "#FFFFFF"
+        var interpolatedColor = {
+            r: Math.round(startColor.r + (endColor.r - startColor.r) * colorRatio),
+            g: Math.round(startColor.g + (endColor.g - startColor.g) * colorRatio),
+            b: Math.round(startColor.b + (endColor.b - startColor.b) * colorRatio),
+        };
 
-        // Change color based on traffic intensity (this is just an example)
-        if (trafficWeight > 5) {
+        link.fillColor = `rgb(${interpolatedColor.r},${interpolatedColor.g},${interpolatedColor.b})`;
 
-            link.lineDash = 20;
-
-            link.fillColor = "#FF0000"; // High traffic in red
-            link.radius = 3;
-
+        if (highlighted_or_not > 0) {
+            link.lineDash = 1;
+            link.radius = 15;
         } else {
-            link.fillColor = "#FFFFFF"; // Lower traffic in green
+            link.fillColor = "#FFFFFF"; // Default to white if not highlighted
         }
-
 
         link.items = [
             {   // Default item places just as the regular label.
                 text: link.data.weight,
                 padding: 2,
                 backgroundStyle: {
-                    // fillColor: "rgba(0,0,0, 1)",
                     fillColor: "rgba(0,0,0, 1)",
                 },
                 textStyle: {
                     fillColor: "white",
                     font: "15px FontAwesome"
-
                 }
             },
-        ]
+        ];
     }
 
     chart = new NetChart({
@@ -193,7 +194,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         layout: {
             // mode: "hierarchy",
-            nodeSpacing: 200,
+            nodeSpacing: 100,
             gravity: {
                 from: "auto",
                 to: "nearestLockedNode",
@@ -213,9 +214,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         toolbar: {},
 
-        selection: {
-
-        },
+        selection: {},
 
         interaction: {
             resizing: {enabled: true},

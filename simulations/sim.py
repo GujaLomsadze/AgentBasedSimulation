@@ -2,15 +2,13 @@ import random
 from collections import defaultdict
 
 
-def traverse_weighted_graph_N_times(graph, start_node, N):
-    visit_counts = defaultdict(int)
-
+def traverse_weighted_graph_n_times(graph, start_node, N):
     for _ in range(N):
-        current_node = start_node
-        visited = set()
+        temp_path = []
 
+        current_node = start_node
         while True:
-            visited.add(current_node)
+            temp_path.append(current_node)
             neighbors = list(graph.successors(current_node))
 
             if len(neighbors) == 0:
@@ -25,11 +23,6 @@ def traverse_weighted_graph_N_times(graph, start_node, N):
 
             # Choose the next node based on probabilities
             next_node = random.choices(neighbors, weights=probabilities)[0]
-            visit_counts[next_node] += 1
             current_node = next_node
 
-        # Update visit counts for all visited nodes
-        for node in visited:
-            visit_counts[node] += 1
-
-    return dict(visit_counts)
+        yield temp_path

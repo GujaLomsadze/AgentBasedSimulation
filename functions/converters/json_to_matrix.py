@@ -52,6 +52,10 @@ def json_to_matrix(file_path: str):
     edges = [[link["from"], link["to"], link.get("weight", 1)] for link in
              data["links"]]  # Default weight is 1 if not specified
 
+    # Assuming each link now includes a 'weight' key
+    edges_rich = [[link["from"], link["to"], link["id"]] for link in
+                  data["links"]]
+
     adjacency_matrix = generate_adjacency_matrix(nodes, edges)
 
-    return adjacency_matrix, nodes, node_names
+    return adjacency_matrix, nodes, node_names, edges_rich
