@@ -313,7 +313,8 @@
       "id": "syslog_Nt",
       "from": "syslog",
       "to": "syslog_Nt",
-      "name": "Nt"
+      "name": "Nt",
+      "weight": "0.5"
     },
     {
       "id": "syslog_Nt_192.168.0.167",
@@ -331,7 +332,8 @@
       "id": "syslog_s156",
       "from": "syslog",
       "to": "syslog_s156",
-      "name": "s156"
+      "name": "s156",
+      "weight": "0.5"
     },
     {
       "id": "syslog_s156_192.168.31.156",
@@ -343,19 +345,22 @@
       "id": "syslog_s156_192.168.31.156user",
       "from": "syslog_s156_192.168.31.156",
       "to": "syslog_s156_192.168.31.156user",
-      "name": "user"
+      "name": "user",
+      "weight": "0.3"
     },
     {
       "id": "syslog_s156_192.168.31.156sys",
       "from": "syslog_s156_192.168.31.156",
       "to": "syslog_s156_192.168.31.156sys",
-      "name": "sys"
+      "name": "sys",
+      "weight": "0.3"
     },
     {
       "id": "syslog_s156_192.168.31.156mess",
       "from": "syslog_s156_192.168.31.156",
       "to": "syslog_s156_192.168.31.156mess",
-      "name": "mess"
+      "name": "mess",
+      "weight": "0.3"
     },
     {
       "id": "cps",
@@ -380,26 +385,29 @@
       "id": "cps_Nt_192.168.0.167cperr",
       "from": "cps_Nt_192.168.0.167",
       "to": "cps_Nt_192.168.0.167cperr",
-      "name": "cperr"
+      "name": "cperr",
+      "weight": "0.5"
     },
     {
       "id": "cps_Nt_192.168.0.167CPSacc",
       "from": "cps_Nt_192.168.0.167",
       "to": "cps_Nt_192.168.0.167CPSacc",
-      "name": "CPSacc"
+      "name": "CPSacc",
+      "weight": "0.5"
     },
     {
       "id": "apache2acc",
       "from": "n0",
       "to": "apache2acc",
       "name": "apache2acc",
-      "weight": "0.1"
+      "weight": "0.2"
     },
     {
       "id": "apache2acc_Nt",
       "from": "apache2acc",
       "to": "apache2acc_Nt",
-      "name": "Nt"
+      "name": "Nt",
+      "weight": "0.5"
     },
     {
       "id": "apache2acc_Nt_192.168.0.167",
@@ -417,7 +425,8 @@
       "id": "apache2acc_s156",
       "from": "apache2acc",
       "to": "apache2acc_s156",
-      "name": "s156"
+      "name": "s156",
+      "weight": "0.5"
     },
     {
       "id": "apache2acc_s156_192.168.31.156",
@@ -425,6 +434,7 @@
       "to": "apache2acc_s156_192.168.31.156",
       "name": "192.168.31.156"
     },
+
     {
       "id": "apache2acc_s156_192.168.31.156a_acc",
       "from": "apache2acc_s156_192.168.31.156",
@@ -436,7 +446,7 @@
       "from": "n0",
       "to": "apache2err",
       "name": "apache2err",
-      "weight": "0.3"
+      "weight": "0.2"
     },
     {
       "id": "apache2err_s156",

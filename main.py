@@ -7,6 +7,9 @@ import simpy as simpy
 from matplotlib import pyplot as plt
 import concurrent.futures
 
+from functions.analysis.main import calculate_transition_probabilities, \
+    calculate_all_transition_probabilities, calculate_levels_and_probabilities, calculate_levels_and_probabilities, \
+    adjust_color_by_level, calculate_distribution_skewness
 from functions.converters.adj_to_networkx import create_directed_graph_from_adj_matrix
 from functions.converters.json_to_matrix import json_to_matrix
 from functions.node_data_manipulation.change import update_node_style_parameter_in_redis, \
@@ -33,7 +36,7 @@ env = simpy.Environment()
 
 start_node = 'n0'  # Assuming you want to start from node FE
 
-number_of_simulations = 1_000_000  # TODO : Migrate to ArgParser
+number_of_simulations = 1_000_000_000  # TODO : Migrate to ArgParser
 
 traverse_paths = traverse_weighted_graph_n_times(graph=graph, start_node=start_node, N=number_of_simulations)
 
@@ -43,12 +46,45 @@ r.flushall()
 # Move Json Data to Redis for faster traversal and change
 json_to_redis(json_data=json_data, redis_conn=r)
 
+# TODO: Move this to ArgParser
+FULL_PROBABILITY = True
+REMOVE_STARTING_NODE = True
+
+edge_probabilities = calculate_transition_probabilities(graph, start_node)
+# full_probabilities = calculate_all_transition_probabilities(graph, start_node)
+
+levels, full_probabilities = calculate_levels_and_probabilities(graph, start_node)
+
+skewness_percentage = calculate_distribution_skewness(full_probabilities)
+print(f"Skewness (Microservice-ness) Percentage: {skewness_percentage:.2f}%")
+
+if FULL_PROBABILITY:
+    transition_probabilities = full_probabilities
+else:
+    transition_probabilities = edge_probabilities
+
+if REMOVE_STARTING_NODE:
+    transition_probabilities.pop(start_node)
+
+# Find min and max probabilities
+min_prob = min(transition_probabilities.values())
+max_prob = max(transition_probabilities.values())
+
+COLOR_IN_ADVANCE_EDGES = True  # The node ID you want to update
+
+if COLOR_IN_ADVANCE_EDGES:
+    color_map = adjust_color_by_level(probabilities=transition_probabilities, node_levels=levels)
+    # Display or use the colors
+    for node, color in color_map.items():
+        update_node_style_parameter_in_redis(redis_connection=r, node_id=node,
+                                             parameter="fillColor", new_value=color)
+
 node_name = "FE"  # The node ID you want to update
 link_id = "syslog"
 parameter = "is_highlighted"  # Specify the parameter within style you want to change
 
-sim_mode = "intensity"  # TODO : Move to ArgParser
-increment_amount = 1
+sim_mode = "live"  # TODO : Move to ArgParser
+increment_amount = 3
 live = None
 intensity = None
 
@@ -58,8 +94,6 @@ if sim_mode == "intensity":
 if sim_mode == "live":
     live = True
 
-# print(edges)
-
 for path in traverse_paths:
     path_decoded = [node_id_label_map[i] for i in path]
     edge_ids = find_edge_ids_for_path(edges, path)
@@ -68,25 +102,24 @@ for path in traverse_paths:
         for edge_to_color in edge_ids:
             update_link_style_parameter_in_redis(r, link_id=edge_to_color, parameter=parameter, new_value=1000)
 
-        time.sleep(1)
+        # time.sleep(0.01)
         for edge_to_color in edge_ids:
-            update_link_style_parameter_in_redis(r, link_id=edge_to_coglor, parameter=parameter, new_value=0)
+            update_link_style_parameter_in_redis(r, link_id=edge_to_color, parameter=parameter, new_value=0)
 
     if intensity:
         for edge_to_color in edge_ids:
             increment_link_style_parameter_in_redis(r, link_id=edge_to_color,
                                                     parameter=parameter, increment_amount=increment_amount)
 
-
-# # new_value = "#ff0000"  # Specify the new color
-# # new_value = "#42f545"  # Specify the new color
+# new_value = "#ff0000"  # Specify the new color
+# new_value = "#42f545"  # Specify the new color
 #
 # colors = ["#ff0000", "#42f545"]
 #
 # node_id = node_name_id[node_name]
 # nodes_g = list(graph.nodes)
-
-
+#
+#
 # for _ in range(1_000_000):
 #     random_color = random.choice(colors)
 #     random_graph_name = random.choice(nodes_g)
