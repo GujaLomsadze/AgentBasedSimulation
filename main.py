@@ -28,7 +28,7 @@ graph = create_directed_graph_from_adj_matrix(adj_matrix_in=adj_matrix, node_nam
 
 start_node = 'n0'  # Assuming you want to start from node FE
 
-number_of_simulations = 3  # TODO : Migrate to ArgParser
+number_of_simulations = 10  # TODO : Migrate to ArgParser
 
 r = get_redis_connection()
 r.flushall()
@@ -58,15 +58,14 @@ adjusted_graph, new_edges = replicate_nodes_in_graph_and_track_edges(graph_cp, s
 edges.extend(new_edges)  # Combine original edges with new edges
 
 graph = adjusted_graph
+# edges = new_edges
 
 updated_json_data = graph_to_json(graph)
-
-json_data = updated_json_data
 
 # update_redis_with_graph(graph=adjusted_graph, redis_conn=r)
 
 r.flushall()
-json_to_redis(json_data=json_data, redis_conn=r)
+json_to_redis(json_data=updated_json_data, redis_conn=r)
 
 levels, full_probabilities = calculate_levels_and_probabilities(graph, start_node)
 
@@ -82,8 +81,6 @@ if REMOVE_STARTING_NODE:
 
 cv = calculate_evenness(transition_probabilities)
 print(f"Coefficient of Variation: {cv:.2f}  (Closer to zero better)")
-exit()
-
 
 outlier_nodes = identify_outliers(transition_probabilities)  # TODO: Handle outlier nodes
 
@@ -104,7 +101,7 @@ node_name = "FE"  # The node ID you want to update
 link_id = "syslog"
 parameter = "is_highlighted"  # Specify the parameter within style you want to change
 
-sim_mode = "intensity"  # TODO : Move to ArgParser
+sim_mode = "live"  # TODO : Move to ArgParser
 increment_amount = 3
 live = None
 intensity = None
@@ -117,13 +114,8 @@ if sim_mode == "live":
 
 traverse_paths = traverse_weighted_graph_n_times(graph=graph, start_node=start_node, N=number_of_simulations)
 
-for traverse_path in traverse_paths:
-    print(traverse_path)
-
-exit()
 
 for path in traverse_paths:
-
     edge_ids = find_edge_ids_for_path(edges, path)
 
     if live:
@@ -133,11 +125,11 @@ for path in traverse_paths:
         # time.sleep(0.01)
         for edge_to_color in edge_ids:
             update_link_style_parameter_in_redis(r, link_id=edge_to_color, parameter=parameter, new_value=0)
-
-    if intensity:
-        for edge_to_color in edge_ids:
-            increment_link_style_parameter_in_redis(r, link_id=edge_to_color,
-                                                    parameter=parameter, increment_amount=increment_amount)
+    #
+    # if intensity:
+    #     for edge_to_color in edge_ids:
+    #         increment_link_style_parameter_in_redis(r, link_id=edge_to_color,
+    #                                                 parameter=parameter, increment_amount=increment_amount)
 
 # new_value = "#ff0000"  # Specify the new color
 # new_value = "#42f545"  # Specify the new color

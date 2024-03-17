@@ -73,7 +73,7 @@ def graph_to_json(graph):
     # Process edges
     for u, v, data in graph.edges(data=True):
         link_data = {
-            "id": data.get('id', f"{u}_to_{v}"),
+            "id": data.get('id', f"{u}_{v}"),
             "from": u,
             "to": v,
             "name": data.get('name', f"{u} to {v}"),  # Default name, adjust as necessary

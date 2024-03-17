@@ -336,7 +336,8 @@ def calculate_levels_and_probabilities(graph_inside, start_node):
         if node not in levels:  # First visit to node
             levels[node] = level
 
-            total_weight = sum(graph_inside[node][neighbor].get('weight', 1) for neighbor in graph_inside.successors(node))
+            total_weight = sum(
+                graph_inside[node][neighbor].get('weight', 1) for neighbor in graph_inside.successors(node))
             for neighbor in graph_inside.successors(node):
                 edge_weight = graph_inside[node][neighbor].get('weight', 1)
                 if total_weight > 0:
@@ -369,8 +370,18 @@ def identify_nodes_for_replication(graph_in, start_node, replication_percentile=
     return nodes_for_replication
 
 
+def distribute_start_node_successor_weights_evenly(graph_cp, start_node):
+    successors = list(graph_cp.successors(start_node))
+    num_successors = len(successors)
+    if num_successors > 0:
+        even_weight = 1.0 / num_successors
+        for succ in successors:
+            # Adjust existing weights or add new edges with even weight
+            graph_cp.add_edge(start_node, succ, weight=even_weight)
+
+
 def replicate_nodes_in_graph_and_track_edges(graph_cp, start_node, replication_percentile=99,
-                                             min_probability_threshold=10):
+                                             min_probability_threshold=10, rebalance_starting_node=True):
     nodes_for_replication = identify_nodes_for_replication(graph_cp, start_node, replication_percentile,
                                                            min_probability_threshold / 100)
 
@@ -378,41 +389,41 @@ def replicate_nodes_in_graph_and_track_edges(graph_cp, start_node, replication_p
     new_edges = []
 
     for node in nodes_for_replication:
-        # Ensure a unique identifier for the new, replicated node
         new_node = f"{node}_replicated"
-
-        # Add the new, replicated node to the graph_cp
         graph_cp.add_node(new_node)
         replicated_node_mapping[node] = new_node
 
-        # Replicate incoming edges from predecessors
+        # Handle incoming edges from predecessors
         for pred in graph_cp.predecessors(node):
             edge_data = graph_cp.get_edge_data(pred, node).copy()
-            edge_data.pop('id', None)  # Remove the 'id' if present
-
-            # Add the edge from predecessor to the replicated node with original weight
-            new_edge_id = f"{pred}_{new_node}_new"
+            edge_data.pop('id', None)
+            new_edge_id = f"{pred}_{new_node}"
             graph_cp.add_edge(pred, new_node, **edge_data)
             new_edges.append([pred, new_node, new_edge_id])
 
-        # Adjust and distribute outgoing edge weights to successors
-        if graph_cp.out_degree(node) > 0:
-            for succ in graph_cp.successors(node):
-                edge_data = graph_cp.get_edge_data(node, succ).copy()
-                edge_data.pop('id', None)  # Remove the 'id' if present
+        # Handle outgoing edges to successors
+        for succ in graph_cp.successors(node):
+            edge_data = graph_cp.get_edge_data(node, succ).copy()
+            edge_data.pop('id', None)
 
-                # Calculate the adjusted weight for both the original and replicated edges
-                original_weight = edge_data.get('weight', 1)
-                adjusted_weight = original_weight / 2  # Assume 1 replication for simplicity
+            original_weight = edge_data.get('weight', 1)
+            adjusted_weight = original_weight / 2  # Assuming 1 replication for simplicity
 
-                # Adjust the weight for the existing original edge
-                graph_cp[node][succ]['weight'] = adjusted_weight
+            graph_cp[node][succ]['weight'] = adjusted_weight
 
-                # Create a new edge from the replicated node to the successor with the adjusted weight
-                new_edge_id = f"{new_node}_{succ}_new"
-                edge_data['weight'] = adjusted_weight
-                graph_cp.add_edge(new_node, succ, **edge_data)
-                new_edges.append([new_node, succ, new_edge_id])
+            new_edge_id = f"{new_node}_{succ}"
+            edge_data['weight'] = adjusted_weight
+            graph_cp.add_edge(new_node, succ, **edge_data)
+            new_edges.append([new_node, succ, new_edge_id])
+
+    if rebalance_starting_node:
+        distribute_start_node_successor_weights_evenly(graph_cp, start_node)
+
+    # Special handling for the starting node if it's in the replication list
+    if start_node in nodes_for_replication:
+        new_start_node = replicated_node_mapping[start_node]
+        distribute_start_node_successor_weights_evenly(graph_cp, start_node)
+        distribute_start_node_successor_weights_evenly(graph_cp, new_start_node)
 
     return graph_cp, new_edges
 
