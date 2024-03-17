@@ -53,8 +53,8 @@ graph_cp = copy.deepcopy(graph)
 
 # exit()
 
-adjusted_graph, new_edges = replicate_nodes_in_graph_and_track_edges(graph_cp, start_node, replication_percentile=99,
-                                                                     min_probability_threshold=5)
+adjusted_graph, new_edges = replicate_nodes_in_graph_and_track_edges(graph_cp, start_node, replication_percentile=50,
+                                                                     min_probability_threshold=1)
 edges.extend(new_edges)  # Combine original edges with new edges
 
 graph = adjusted_graph
