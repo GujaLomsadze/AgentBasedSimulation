@@ -36,7 +36,7 @@ def update_link_style_parameter_in_redis(redis_connection, link_id, parameter, n
 
     # Check if the node exists in Redis
     if not redis_connection.exists(link_key):
-        print(f"Link {link_id} not found in Redis.")
+        print(f"update_link_style_parameter_in_redis. Link {link_id} not found in Redis.")
         return
 
     # Update the specific style parameter in Redis
@@ -57,7 +57,7 @@ def increment_link_style_parameter_in_redis(redis_connection, link_id, parameter
 
     # Check if the link exists in Redis
     if not redis_connection.exists(link_key):
-        print(f"Link {link_id} not found in Redis.")
+        print(f"increment_link_style_parameter_in_redis. Link {link_id} not found in Redis.")
         return
 
     # Retrieve the current value of the style parameter

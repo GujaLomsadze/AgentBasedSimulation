@@ -18,4 +18,5 @@ def find_edge_ids_for_path(edges, path):
             edge_ids.append(edge_id)
         else:
             print(f"Could not find Edge ID for transition: {from_node} -> {to_node}")
+
     return edge_ids

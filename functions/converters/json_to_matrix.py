@@ -1,4 +1,5 @@
 import json
+from pprint import pprint
 
 
 def print_matrix(matrix):
@@ -31,20 +32,11 @@ def generate_adjacency_matrix(nodes_in, edges_in):
     return adjacency_matrix_out
 
 
-def json_to_matrix(file_path: str):
+def json_to_matrix(data):
     """
     Function to generate weighted adjacency matrix based on a ZoomCharts Node configuration
-    :param file_path: Path to the JSON file containing the graph configuration
     :return: Weighted adjacency matrix / None
     """
-
-    # TODO: Implement check if file exists
-
-    # Open the file and load its contents
-    with open(file_path, 'r', encoding="utf8") as file:
-        # TODO: Consider adding error handling for file read and JSON parsing
-        data = json.load(file)
-
     nodes = [node["id"] for node in data['nodes']]
     node_names = [node["style"]["label"] for node in data['nodes']]
 
@@ -59,3 +51,40 @@ def json_to_matrix(file_path: str):
     adjacency_matrix = generate_adjacency_matrix(nodes, edges)
 
     return adjacency_matrix, nodes, node_names, edges_rich
+
+
+def graph_to_json(graph):
+    # Initialize the structure
+    json_data = {"nodes": [], "links": []}
+
+    # Process nodes
+    for node in graph.nodes(data=True):
+        node_data = {
+            "id": node[0],
+            "loaded": True,
+            "style": node[1].get('style', {
+                "label": node[0],  # Use node ID as label if not specified
+                "radius": 12157,
+                "fillColor": "#42f545"  # Default values, adjust as necessary
+            })
+        }
+        json_data["nodes"].append(node_data)
+
+    # Process edges
+    for u, v, data in graph.edges(data=True):
+        link_data = {
+            "id": data.get('id', f"{u}_to_{v}"),
+            "from": u,
+            "to": v,
+            "name": data.get('name', f"{u} to {v}"),  # Default name, adjust as necessary
+            "weight": str(data.get('weight', "1.0")),  # Default weight
+            "style": data.get('style', {
+                "toDecoration": "arrow"
+            })
+        }
+        json_data["links"].append(link_data)
+
+    with open("data/sample.json", "w") as outfile:
+        json.dump(json_data, outfile)
+
+    return json_data

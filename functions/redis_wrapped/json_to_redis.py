@@ -1,5 +1,7 @@
 import json
 
+from functions.converters.json_to_matrix import graph_to_json
+
 
 def json_to_redis(json_data, redis_conn):
     """
@@ -73,3 +75,11 @@ def reconstruct_json_from_redis(redis_conn):
         reconstructed_data["links"].append(link)
 
     return reconstructed_data
+
+
+def update_redis_with_graph(graph, redis_conn):
+    # Generate the updated JSON data from the graph
+    updated_json_data = graph_to_json(graph)
+
+    # Use the provided function to update Redis
+    # json_to_redis(json_data=updated_json_data, redis_conn=redis_conn)

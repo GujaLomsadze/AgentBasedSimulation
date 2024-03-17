@@ -193,7 +193,7 @@ document.addEventListener("DOMContentLoaded", function () {
         },
 
         layout: {
-            mode: "hierarchy",
+            // mode: "hierarchy",
             nodeSpacing: 100,
             gravity: {
                 from: "auto",

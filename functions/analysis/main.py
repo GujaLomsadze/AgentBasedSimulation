@@ -1,5 +1,7 @@
+import copy
 import math
 from collections import deque
+from pprint import pprint
 
 import networkx as nx
 import numpy as np
@@ -242,28 +244,28 @@ def get_relative_color(probabilities):
     return color_map
 
 
-def calculate_distribution_skewness(probabilities):
+def calculate_evenness(probabilities):
     """
-    Calculates the skewness of the probability distribution using entropy.
-    A lower percentage indicates a more skewed distribution.
+    Calculates the evenness of the probability distribution.
+    Lower values indicate a more uniform (even) distribution.
 
     Args:
     - probabilities: A dictionary of node identifiers to their probabilities.
 
     Returns:
-    - A percentage representing the skewness of the distribution relative to a uniform distribution.
+    - Coefficient of variation (CV) as a measure of distribution evenness.
     """
-    # Calculate entropy of the distribution
-    entropy = -sum(prob * math.log(prob, 2) for prob in probabilities.values() if prob > 0)
+    prob_values = list(probabilities.values())
+    mean_prob = np.mean(prob_values)
+    std_dev_prob = np.std(prob_values)
 
-    # Calculate the maximum possible entropy (for a uniform distribution)
-    num_nodes = len(probabilities)
-    max_entropy = math.log(num_nodes, 2) if num_nodes > 0 else 0
+    # Avoid division by zero in case mean_prob is 0
+    if mean_prob > 0:
+        cv = std_dev_prob / mean_prob
+    else:
+        cv = np.inf  # Infinite or undefined when mean is 0
 
-    # Calculate the skewness as a percentage of the maximum entropy
-    skewness_percentage = (entropy / max_entropy) * 100 if max_entropy > 0 else 0
-
-    return skewness_percentage
+    return cv
 
 
 def adjust_color_by_level(probabilities, node_levels):
@@ -309,13 +311,13 @@ def adjust_color_by_level(probabilities, node_levels):
     return color_map
 
 
-def calculate_levels_and_probabilities(graph, start_node):
+def calculate_levels_and_probabilities(graph_inside, start_node):
     """
-    Calculates levels in the graph and transition probabilities from the start node to all nodes,
+    Calculates levels in the graph_inside and transition probabilities from the start node to all nodes,
     with probabilities at each level computed relative to that level only.
 
     Args:
-        graph: A NetworkX DiGraph.
+        graph_inside: A NetworkX DiGraph.
         start_node: The starting node for the transition calculation.
 
     Returns:
@@ -324,7 +326,7 @@ def calculate_levels_and_probabilities(graph, start_node):
         - A dictionary where keys are node identifiers and values are transition probabilities.
     """
     levels = {}  # Node to level mapping
-    probabilities = {node: 0 for node in graph.nodes()}  # Initialize probabilities
+    probabilities = {node: 0 for node in graph_inside.nodes()}  # Initialize probabilities
     probabilities[start_node] = 1.0  # Start node probability is 100%
 
     queue = deque([(start_node, 0)])  # Queue for BFS: (node, level)
@@ -334,9 +336,9 @@ def calculate_levels_and_probabilities(graph, start_node):
         if node not in levels:  # First visit to node
             levels[node] = level
 
-            total_weight = sum(graph[node][neighbor].get('weight', 1) for neighbor in graph.successors(node))
-            for neighbor in graph.successors(node):
-                edge_weight = graph[node][neighbor].get('weight', 1)
+            total_weight = sum(graph_inside[node][neighbor].get('weight', 1) for neighbor in graph_inside.successors(node))
+            for neighbor in graph_inside.successors(node):
+                edge_weight = graph_inside[node][neighbor].get('weight', 1)
                 if total_weight > 0:
                     relative_probability = (edge_weight / total_weight) * probabilities[node]
                 else:
@@ -347,3 +349,130 @@ def calculate_levels_and_probabilities(graph, start_node):
                 queue.append((neighbor, level + 1))
 
     return levels, probabilities
+
+
+def identify_nodes_for_replication(graph_in, start_node, replication_percentile=99, min_probability_threshold=0.1):
+    _, probabilities = calculate_levels_and_probabilities(graph_in, start_node)
+
+    # Exclude start node from consideration
+    probabilities.pop(start_node, None)
+
+    # Calculate threshold based on the specified percentile
+    percentile_threshold = np.percentile(list(probabilities.values()), replication_percentile)
+
+    # Ensure the threshold is at least as high as the minimum probability threshold
+    final_threshold = max(percentile_threshold, min_probability_threshold)
+
+    # Identify nodes that meet or exceed the final threshold
+    nodes_for_replication = [node for node, probability in probabilities.items() if probability >= final_threshold]
+
+    return nodes_for_replication
+
+
+def replicate_nodes_in_graph_and_track_edges(graph_cp, start_node, replication_percentile=99,
+                                             min_probability_threshold=10):
+    nodes_for_replication = identify_nodes_for_replication(graph_cp, start_node, replication_percentile,
+                                                           min_probability_threshold / 100)
+
+    replicated_node_mapping = {}
+    new_edges = []
+
+    for node in nodes_for_replication:
+        # Ensure a unique identifier for the new, replicated node
+        new_node = f"{node}_replicated"
+
+        # Add the new, replicated node to the graph_cp
+        graph_cp.add_node(new_node)
+        replicated_node_mapping[node] = new_node
+
+        # Replicate incoming edges from predecessors
+        for pred in graph_cp.predecessors(node):
+            edge_data = graph_cp.get_edge_data(pred, node).copy()
+            edge_data.pop('id', None)  # Remove the 'id' if present
+
+            # Add the edge from predecessor to the replicated node with original weight
+            new_edge_id = f"{pred}_{new_node}_new"
+            graph_cp.add_edge(pred, new_node, **edge_data)
+            new_edges.append([pred, new_node, new_edge_id])
+
+        # Adjust and distribute outgoing edge weights to successors
+        if graph_cp.out_degree(node) > 0:
+            for succ in graph_cp.successors(node):
+                edge_data = graph_cp.get_edge_data(node, succ).copy()
+                edge_data.pop('id', None)  # Remove the 'id' if present
+
+                # Calculate the adjusted weight for both the original and replicated edges
+                original_weight = edge_data.get('weight', 1)
+                adjusted_weight = original_weight / 2  # Assume 1 replication for simplicity
+
+                # Adjust the weight for the existing original edge
+                graph_cp[node][succ]['weight'] = adjusted_weight
+
+                # Create a new edge from the replicated node to the successor with the adjusted weight
+                new_edge_id = f"{new_node}_{succ}_new"
+                edge_data['weight'] = adjusted_weight
+                graph_cp.add_edge(new_node, succ, **edge_data)
+                new_edges.append([new_node, succ, new_edge_id])
+
+    return graph_cp, new_edges
+
+
+def identify_outliers(probabilities):
+    """
+    Identifies outliers in the node transition probabilities.
+
+    Args:
+    - probabilities: A dictionary of node identifiers to their probabilities.
+
+    Returns:
+    - A list of node identifiers considered as outliers.
+    """
+
+    prob_values = np.array(list(probabilities.values()))
+
+    Q1 = np.percentile(prob_values, 25)
+    Q3 = np.percentile(prob_values, 75)
+    IQR = Q3 - Q1
+
+    lower_bound = Q1 - 1.5 * IQR
+    upper_bound = Q3 + 1.5 * IQR
+
+    outliers = [node for node, prob in probabilities.items() if prob < lower_bound or prob > upper_bound]
+
+    return outliers
+
+
+def grid_search_replication(graph_in, start_node):
+    percentile_range = range(1, 100)  # Example range, adjust as needed
+    threshold_range = range(1, 100)  # Example range, adjust as needed
+
+    lowest_cv = np.inf
+    best_config = None
+    best_new_edges = None
+    best_adjusted_graph = None
+
+    # Iterate over all combinations of percentile and threshold values
+    for percentile in percentile_range:
+        for threshold in threshold_range:
+            # Make a deep copy of the graph to avoid modifying the original
+            graph_cp = copy.deepcopy(graph_in)
+            # Apply replication with the current configuration
+            adj_graph, new_edges = replicate_nodes_in_graph_and_track_edges(
+                graph_cp, start_node, replication_percentile=percentile, min_probability_threshold=threshold)
+
+            # Calculate the transition probabilities for the adjusted graph
+            # Assuming a function exists to do so; you might need to adjust this part
+            _, transition_probabilities = calculate_levels_and_probabilities(adj_graph, start_node)
+
+            # Calculate the CV for the current configuration
+            cv = calculate_evenness(transition_probabilities)
+
+            print(f"Percentile: {percentile}, Threshold: {threshold}, CV: {cv:.2f}")
+
+            if cv < lowest_cv:
+                lowest_cv = cv
+                best_config = (percentile, threshold)
+                best_new_edges = new_edges
+                best_adjusted_graph = adj_graph
+
+    return best_config, lowest_cv, best_adjusted_graph, best_new_edges

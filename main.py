@@ -1,44 +1,34 @@
-import random
-import time
-
-import progressbar as progressbar
-import seaborn as sns
-import simpy as simpy
-from matplotlib import pyplot as plt
-import concurrent.futures
-
-from functions.analysis.main import calculate_transition_probabilities, \
-    calculate_all_transition_probabilities, calculate_levels_and_probabilities, calculate_levels_and_probabilities, \
-    adjust_color_by_level, calculate_distribution_skewness
-from functions.converters.adj_to_networkx import create_directed_graph_from_adj_matrix
-from functions.converters.json_to_matrix import json_to_matrix
-from functions.node_data_manipulation.change import update_node_style_parameter_in_redis, \
-    increment_link_style_parameter_in_redis, update_link_style_parameter_in_redis, \
-    increment_link_style_parameter_in_redis
-from functions.readers.json_readers import read_json_file
-from functions.redis_wrapped.json_to_redis import json_to_redis, reconstruct_json_from_redis
-from functions.redis_wrapped.conn import get_redis_connection
-from functions.traversal.main import find_edge_ids_for_path
-from simulations.sim import traverse_weighted_graph_n_times
+import copy
 from pprint import pprint
 
-json_nodes_filename = "data/nodes.json"
+from functions.analysis.main import calculate_transition_probabilities, \
+    calculate_levels_and_probabilities, \
+    adjust_color_by_level, replicate_nodes_in_graph_and_track_edges, calculate_evenness, identify_outliers, \
+    grid_search_replication
+from functions.converters.adj_to_networkx import create_directed_graph_from_adj_matrix
+from functions.converters.json_to_matrix import json_to_matrix, graph_to_json
+from functions.node_data_manipulation.change import update_node_style_parameter_in_redis, \
+    update_link_style_parameter_in_redis, \
+    increment_link_style_parameter_in_redis
+from functions.readers.json_readers import read_json_file
+from functions.redis_wrapped.conn import get_redis_connection
+from functions.redis_wrapped.json_to_redis import json_to_redis, update_redis_with_graph
+from functions.traversal.main import find_edge_ids_for_path
+from simulations.sim import traverse_weighted_graph_n_times
+
+json_nodes_filename = "data/nodes.json"  # TODO : Migrate to ArgParser
 
 json_data = read_json_file(json_nodes_filename)
 
-adj_matrix, nodes, node_names, edges = json_to_matrix(json_nodes_filename)
+adj_matrix, nodes, node_names, edges = json_to_matrix(data=json_data)
 
 node_id_label_map = {key: value for key, value in zip(nodes, node_names)}
 
 graph = create_directed_graph_from_adj_matrix(adj_matrix_in=adj_matrix, node_names=nodes)
 
-env = simpy.Environment()
-
 start_node = 'n0'  # Assuming you want to start from node FE
 
-number_of_simulations = 1_000_000_000  # TODO : Migrate to ArgParser
-
-traverse_paths = traverse_weighted_graph_n_times(graph=graph, start_node=start_node, N=number_of_simulations)
+number_of_simulations = 3  # TODO : Migrate to ArgParser
 
 r = get_redis_connection()
 r.flushall()
@@ -53,10 +43,32 @@ REMOVE_STARTING_NODE = True
 edge_probabilities = calculate_transition_probabilities(graph, start_node)
 # full_probabilities = calculate_all_transition_probabilities(graph, start_node)
 
-levels, full_probabilities = calculate_levels_and_probabilities(graph, start_node)
 
-skewness_percentage = calculate_distribution_skewness(full_probabilities)
-print(f"Skewness (Microservice-ness) Percentage: {skewness_percentage:.2f}%")
+graph_cp = copy.deepcopy(graph)
+
+# best_config, lowest_cv, best_adjusted_graph, best_new_edges = grid_search_replication(
+#     graph_cp, start_node)
+#
+# print(best_config, lowest_cv)
+
+# exit()
+
+adjusted_graph, new_edges = replicate_nodes_in_graph_and_track_edges(graph_cp, start_node, replication_percentile=99,
+                                                                     min_probability_threshold=5)
+edges.extend(new_edges)  # Combine original edges with new edges
+
+graph = adjusted_graph
+
+updated_json_data = graph_to_json(graph)
+
+json_data = updated_json_data
+
+# update_redis_with_graph(graph=adjusted_graph, redis_conn=r)
+
+r.flushall()
+json_to_redis(json_data=json_data, redis_conn=r)
+
+levels, full_probabilities = calculate_levels_and_probabilities(graph, start_node)
 
 if FULL_PROBABILITY:
     transition_probabilities = full_probabilities
@@ -65,6 +77,15 @@ else:
 
 if REMOVE_STARTING_NODE:
     transition_probabilities.pop(start_node)
+
+# pprint(transition_probabilities)
+
+cv = calculate_evenness(transition_probabilities)
+print(f"Coefficient of Variation: {cv:.2f}  (Closer to zero better)")
+exit()
+
+
+outlier_nodes = identify_outliers(transition_probabilities)  # TODO: Handle outlier nodes
 
 # Find min and max probabilities
 min_prob = min(transition_probabilities.values())
@@ -83,7 +104,7 @@ node_name = "FE"  # The node ID you want to update
 link_id = "syslog"
 parameter = "is_highlighted"  # Specify the parameter within style you want to change
 
-sim_mode = "live"  # TODO : Move to ArgParser
+sim_mode = "intensity"  # TODO : Move to ArgParser
 increment_amount = 3
 live = None
 intensity = None
@@ -94,8 +115,15 @@ if sim_mode == "intensity":
 if sim_mode == "live":
     live = True
 
+traverse_paths = traverse_weighted_graph_n_times(graph=graph, start_node=start_node, N=number_of_simulations)
+
+for traverse_path in traverse_paths:
+    print(traverse_path)
+
+exit()
+
 for path in traverse_paths:
-    path_decoded = [node_id_label_map[i] for i in path]
+
     edge_ids = find_edge_ids_for_path(edges, path)
 
     if live:
