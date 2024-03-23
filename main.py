@@ -1,4 +1,5 @@
 import copy
+import time
 from pprint import pprint
 
 from functions.analysis.main import calculate_transition_probabilities, \
@@ -29,7 +30,7 @@ graph = create_directed_graph_from_adj_matrix(adj_matrix_in=adj_matrix, node_nam
 
 start_node = 'n0'  # Assuming you want to start from node FE
 
-number_of_simulations = 10  # TODO : Migrate to ArgParser
+number_of_simulations = 1_000_000  # TODO : Migrate to ArgParser
 
 r = get_redis_connection()
 r.flushall()
@@ -98,14 +99,13 @@ if COLOR_IN_ADVANCE_EDGES:
         update_node_style_parameter_in_redis(redis_connection=r, node_id=node,
                                              parameter="fillColor", new_value=color)
 
-node_name = "FE"  # The node ID you want to update
-link_id = "syslog"
 parameter = "is_highlighted"  # Specify the parameter within style you want to change
 
 sim_mode = "live"  # TODO : Move to ArgParser
-increment_amount = 3
-live = None
-intensity = None
+increment_amount = 3  # TODO : Move to ArgParser
+
+live = False
+intensity = False
 
 if sim_mode == "intensity":
     intensity = True
@@ -122,14 +122,14 @@ for path in traverse_paths:
         for edge_to_color in edge_ids:
             update_link_style_parameter_in_redis(r, link_id=edge_to_color, parameter=parameter, new_value=1000)
 
-        # time.sleep(0.01)
+        time.sleep(0.5)
         for edge_to_color in edge_ids:
             update_link_style_parameter_in_redis(r, link_id=edge_to_color, parameter=parameter, new_value=0)
-    #
-    # if intensity:
-    #     for edge_to_color in edge_ids:
-    #         increment_link_style_parameter_in_redis(r, link_id=edge_to_color,
-    #                                                 parameter=parameter, increment_amount=increment_amount)
+
+    if intensity:
+        for edge_to_color in edge_ids:
+            increment_link_style_parameter_in_redis(r, link_id=edge_to_color,
+                                                    parameter=parameter, increment_amount=increment_amount)
 
 # new_value = "#ff0000"  # Specify the new color
 # new_value = "#42f545"  # Specify the new color
