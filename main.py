@@ -7,6 +7,7 @@ from functions.analysis.main import calculate_transition_probabilities, \
     grid_search_replication
 from functions.converters.adj_to_networkx import create_directed_graph_from_adj_matrix
 from functions.converters.json_to_matrix import json_to_matrix, graph_to_json
+from functions.converters.graph_to_mermaid import export_to_mermaid
 from functions.node_data_manipulation.change import update_node_style_parameter_in_redis, \
     update_link_style_parameter_in_redis, \
     increment_link_style_parameter_in_redis
@@ -53,7 +54,7 @@ graph_cp = copy.deepcopy(graph)
 
 # exit()
 
-adjusted_graph, new_edges = replicate_nodes_in_graph_and_track_edges(graph_cp, start_node, replication_percentile=50,
+adjusted_graph, new_edges = replicate_nodes_in_graph_and_track_edges(graph_cp, start_node, replication_percentile=95,
                                                                      min_probability_threshold=1)
 edges.extend(new_edges)  # Combine original edges with new edges
 
@@ -113,7 +114,6 @@ if sim_mode == "live":
     live = True
 
 traverse_paths = traverse_weighted_graph_n_times(graph=graph, start_node=start_node, N=number_of_simulations)
-
 
 for path in traverse_paths:
     edge_ids = find_edge_ids_for_path(edges, path)
