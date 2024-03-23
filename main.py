@@ -16,7 +16,7 @@ from functions.readers.json_readers import read_json_file
 from functions.redis_wrapped.conn import get_redis_connection
 from functions.redis_wrapped.json_to_redis import json_to_redis, update_redis_with_graph
 from functions.traversal.main import find_edge_ids_for_path
-from simulations.sim import traverse_weighted_graph_n_times
+from simulations.sim import traverse_weighted_graph_n_times, traverse_any_given_graph_and_visualize
 
 json_nodes_filename = "data/nodes.json"  # TODO : Migrate to ArgParser
 
@@ -28,15 +28,41 @@ node_id_label_map = {key: value for key, value in zip(nodes, node_names)}
 
 graph = create_directed_graph_from_adj_matrix(adj_matrix_in=adj_matrix, node_names=nodes)
 
+"""
+============================================================================================ PARAMETERS
+"""
 start_node = 'n0'  # Assuming you want to start from node FE
 
+parameter = "is_highlighted"  # Specify the parameter within style you want to change
+
+sim_mode = "intensity"  # TODO : Move to ArgParser
+increment_amount = 3  # TODO : Move to ArgParser
+
+live = False
+intensity = False
+
+if sim_mode == "intensity":
+    intensity = True
+
+if sim_mode == "live":
+    live = True
+
 number_of_simulations = 1_000_000  # TODO : Migrate to ArgParser
+
+"""
+============================================================================================ PARAMETERS
+"""
 
 r = get_redis_connection()
 r.flushall()
 
 # Move Json Data to Redis for faster traversal and change
-json_to_redis(json_data=json_data, redis_conn=r)
+json_to_redis(json_data=graph_to_json(graph), redis_conn=r)
+
+traverse_any_given_graph_and_visualize(redis_conn=r, method=sim_mode, graph=graph, edges=edges, start_node=start_node,
+                                       parameter=parameter, number_of_simulations=10000,
+                                       increment_amount=increment_amount)
+
 
 # TODO: Move this to ArgParser
 FULL_PROBABILITY = True
@@ -55,16 +81,19 @@ graph_cp = copy.deepcopy(graph)
 
 # exit()
 
-adjusted_graph, new_edges = replicate_nodes_in_graph_and_track_edges(graph_cp, start_node, replication_percentile=95,
-                                                                     min_probability_threshold=1)
+adjusted_graph, new_edges = replicate_nodes_in_graph_and_track_edges(graph_cp, start_node, replication_percentile=80,
+                                                                     min_probability_threshold=0.1)
 edges.extend(new_edges)  # Combine original edges with new edges
 
 graph = adjusted_graph
 # edges = new_edges
 
+_good_green_hex = "#42f545"
 updated_json_data = graph_to_json(graph)
 
 # update_redis_with_graph(graph=adjusted_graph, redis_conn=r)
+
+time.sleep(30)
 
 r.flushall()
 json_to_redis(json_data=updated_json_data, redis_conn=r)
@@ -90,46 +119,25 @@ outlier_nodes = identify_outliers(transition_probabilities)  # TODO: Handle outl
 min_prob = min(transition_probabilities.values())
 max_prob = max(transition_probabilities.values())
 
-COLOR_IN_ADVANCE_EDGES = True  # The node ID you want to update
+COLOR_IN_ADVANCE_EDGES = False  # The node ID you want to update
 
-if COLOR_IN_ADVANCE_EDGES:
+time.sleep(10)
+
+
+def color_the_pre_nodes():
     color_map = adjust_color_by_level(probabilities=transition_probabilities, node_levels=levels)
     # Display or use the colors
     for node, color in color_map.items():
         update_node_style_parameter_in_redis(redis_connection=r, node_id=node,
                                              parameter="fillColor", new_value=color)
 
-parameter = "is_highlighted"  # Specify the parameter within style you want to change
 
-sim_mode = "live"  # TODO : Move to ArgParser
-increment_amount = 3  # TODO : Move to ArgParser
+if COLOR_IN_ADVANCE_EDGES:
+    color_the_pre_nodes()
 
-live = False
-intensity = False
-
-if sim_mode == "intensity":
-    intensity = True
-
-if sim_mode == "live":
-    live = True
-
-traverse_paths = traverse_weighted_graph_n_times(graph=graph, start_node=start_node, N=number_of_simulations)
-
-for path in traverse_paths:
-    edge_ids = find_edge_ids_for_path(edges, path)
-
-    if live:
-        for edge_to_color in edge_ids:
-            update_link_style_parameter_in_redis(r, link_id=edge_to_color, parameter=parameter, new_value=1000)
-
-        time.sleep(0.5)
-        for edge_to_color in edge_ids:
-            update_link_style_parameter_in_redis(r, link_id=edge_to_color, parameter=parameter, new_value=0)
-
-    if intensity:
-        for edge_to_color in edge_ids:
-            increment_link_style_parameter_in_redis(r, link_id=edge_to_color,
-                                                    parameter=parameter, increment_amount=increment_amount)
+traverse_any_given_graph_and_visualize(redis_conn=r, method=sim_mode, graph=graph, edges=edges, start_node=start_node,
+                                       parameter=parameter, number_of_simulations=number_of_simulations,
+                                       increment_amount=increment_amount)
 
 # new_value = "#ff0000"  # Specify the new color
 # new_value = "#42f545"  # Specify the new color

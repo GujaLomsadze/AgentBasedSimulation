@@ -53,7 +53,7 @@ def json_to_matrix(data):
     return adjacency_matrix, nodes, node_names, edges_rich
 
 
-def graph_to_json(graph):
+def graph_to_json(graph, default_node_color="#ffffff"):
     # Initialize the structure
     json_data = {"nodes": [], "links": []}
 
@@ -65,7 +65,7 @@ def graph_to_json(graph):
             "style": node[1].get('style', {
                 "label": node[0],  # Use node ID as label if not specified
                 "radius": 12157,
-                "fillColor": "#42f545"  # Default values, adjust as necessary
+                "fillColor": default_node_color  # Default values, adjust as necessary
             })
         }
         json_data["nodes"].append(node_data)

@@ -6,7 +6,7 @@
         "label": "FE",
         "radius": 12157,
         "lineColor": "#2c3e50",
-        "fillColor": "#42f545",
+        "fillColor": "#ffffff",
         "line-width": "5"
       },
       "loaded": true
@@ -17,7 +17,7 @@
       "style": {
         "label": "Windows Events",
         "radius": 12157,
-        "fillColor": "#42f545"
+        "fillColor": "#ffffff"
       }
     },
     {
@@ -26,7 +26,7 @@
       "style": {
         "label": "Norcha Test",
         "radius": 12157,
-        "fillColor": "#42f545"
+        "fillColor": "#ffffff"
       }
     },
     {
@@ -35,7 +35,7 @@
       "style": {
         "label": "192.168.0.167",
         "radius": 12157,
-        "fillColor": "#42f545"
+        "fillColor": "#ffffff"
       }
     },
     {
@@ -44,7 +44,7 @@
       "style": {
         "label": "Output1",
         "radius": 12157,
-        "fillColor": "#42f545"
+        "fillColor": "#ffffff"
       }
     },
     {
@@ -53,7 +53,7 @@
       "style": {
         "label": "Syslog",
         "radius": 12157,
-        "fillColor": "#42f545"
+        "fillColor": "#ffffff"
       }
     },
     {
@@ -62,7 +62,7 @@
       "style": {
         "label": "Norcha Test",
         "radius": 12157,
-        "fillColor": "#42f545"
+        "fillColor": "#ffffff"
       }
     },
     {
@@ -71,7 +71,7 @@
       "style": {
         "label": "192.168.0.167",
         "radius": 12157,
-        "fillColor": "#42f545"
+        "fillColor": "#ffffff"
       }
     },
     {
@@ -80,7 +80,7 @@
       "style": {
         "label": "Cron",
         "radius": 12157,
-        "fillColor": "#42f545"
+        "fillColor": "#ffffff"
       }
     },
     {
@@ -89,7 +89,7 @@
       "style": {
         "label": "Server 31.156",
         "radius": 12157,
-        "fillColor": "#42f545"
+        "fillColor": "#ffffff"
       }
     },
     {
@@ -98,7 +98,7 @@
       "style": {
         "label": "192.168.31.156",
         "radius": 12157,
-        "fillColor": "#42f545"
+        "fillColor": "#ffffff"
       }
     },
     {
@@ -107,7 +107,7 @@
       "style": {
         "label": "User log",
         "radius": 12157,
-        "fillColor": "#42f545"
+        "fillColor": "#ffffff"
       }
     },
     {
@@ -116,7 +116,7 @@
       "style": {
         "label": "Syslog",
         "radius": 12157,
-        "fillColor": "#42f545"
+        "fillColor": "#ffffff"
       }
     },
     {
@@ -125,7 +125,7 @@
       "style": {
         "label": "Messages",
         "radius": 12157,
-        "fillColor": "#42f545"
+        "fillColor": "#ffffff"
       }
     },
     {
@@ -134,7 +134,7 @@
       "style": {
         "label": "CPS2",
         "radius": 12157,
-        "fillColor": "#42f545"
+        "fillColor": "#ffffff"
       }
     },
     {
@@ -143,7 +143,7 @@
       "style": {
         "label": "Norcha Test",
         "radius": 12157,
-        "fillColor": "#42f545"
+        "fillColor": "#ffffff"
       }
     },
     {
@@ -152,7 +152,7 @@
       "style": {
         "label": "192.168.0.167",
         "radius": 12157,
-        "fillColor": "#42f545"
+        "fillColor": "#ffffff"
       }
     },
     {
@@ -161,7 +161,7 @@
       "style": {
         "label": "CPS error",
         "radius": 12157,
-        "fillColor": "#42f545"
+        "fillColor": "#ffffff"
       }
     },
     {
@@ -170,7 +170,7 @@
       "style": {
         "label": "CPS access",
         "radius": 12157,
-        "fillColor": "#42f545"
+        "fillColor": "#ffffff"
       }
     },
     {
@@ -179,7 +179,7 @@
       "style": {
         "label": "Apache2 access",
         "radius": 12157,
-        "fillColor": "#42f545"
+        "fillColor": "#ffffff"
       }
     },
     {
@@ -188,7 +188,7 @@
       "style": {
         "label": "Norcha Test",
         "radius": 12157,
-        "fillColor": "#42f545"
+        "fillColor": "#ffffff"
       }
     },
     {
@@ -197,7 +197,7 @@
       "style": {
         "label": "192.168.0.167",
         "radius": 12157,
-        "fillColor": "#42f545"
+        "fillColor": "#ffffff"
       }
     },
     {
@@ -206,7 +206,7 @@
       "style": {
         "label": "Apache2",
         "radius": 12157,
-        "fillColor": "#42f545"
+        "fillColor": "#ffffff"
       }
     },
     {
@@ -215,7 +215,7 @@
       "style": {
         "label": "Server 31.156",
         "radius": 12157,
-        "fillColor": "#42f545"
+        "fillColor": "#ffffff"
       }
     },
     {
@@ -224,7 +224,7 @@
       "style": {
         "label": "192.168.31.156",
         "radius": 12157,
-        "fillColor": "#42f545"
+        "fillColor": "#ffffff"
       }
     },
     {
@@ -233,7 +233,7 @@
       "style": {
         "label": "Apsche access",
         "radius": 12157,
-        "fillColor": "#42f545"
+        "fillColor": "#ffffff"
       }
     },
     {
@@ -242,7 +242,7 @@
       "style": {
         "label": "Apache2 error",
         "radius": 12157,
-        "fillColor": "#42f545"
+        "fillColor": "#ffffff"
       }
     },
     {
@@ -251,7 +251,7 @@
       "style": {
         "label": "Server 31.156",
         "radius": 12157,
-        "fillColor": "#42f545"
+        "fillColor": "#ffffff"
       }
     },
     {
@@ -260,7 +260,7 @@
       "style": {
         "label": "192.168.31.156",
         "radius": 12157,
-        "fillColor": "#42f545"
+        "fillColor": "#ffffff"
       }
     },
     {
@@ -269,7 +269,7 @@
       "style": {
         "label": "Apsche error",
         "radius": 12157,
-        "fillColor": "#42f545"
+        "fillColor": "#ffffff"
       }
     }
   ],

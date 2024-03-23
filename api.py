@@ -43,5 +43,22 @@ def get_nodes_n_links():
     return jsonify(data)
 
 
+@app.route('/get_notifications', methods=['GET'])
+@cross_origin()
+def get_notifications():
+    # Retrieve notifications from Redis
+    notifications = redis_connection.get('notifications')
+
+    print(notifications)
+    # Check if notifications exist
+    if notifications:
+        # Clear notifications from Redis after retrieving
+        # redis_connection.delete('notifications')
+        return jsonify({"notifications": notifications})
+    else:
+        # If no notifications, return an empty list
+        return jsonify({"notifications": ""})
+
+
 if __name__ == '__main__':
     app.run(debug=True)
