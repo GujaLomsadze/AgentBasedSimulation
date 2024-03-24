@@ -79,3 +79,41 @@ def increment_link_style_parameter_in_redis(redis_connection, link_id, parameter
 
     # Update the specific style parameter in Redis with the new incremented value
     redis_connection.hset(link_key, style_key, json.dumps(updated_value))
+
+
+def decrement_link_style_parameter_in_redis(redis_connection, link_id, parameter, decrement_amount):
+    """
+    Increments a specific style parameter for a link with the given ID in Redis by a given amount.
+
+    :param redis_connection: The Redis connection object.
+    :param link_id: The ID of the link to update.
+    :param parameter: The style parameter to increment.
+    :param decrement_amount: The amount to increment the parameter by.
+    """
+    link_key = f"link:{link_id}"
+    style_key = f"{parameter}"
+
+    # Check if the link exists in Redis
+    if not redis_connection.exists(link_key):
+        print(f"increment_link_style_parameter_in_redis. Link {link_id} not found in Redis.")
+        return
+
+    # Retrieve the current value of the style parameter
+    current_value_json = redis_connection.hget(link_key, style_key)
+    if current_value_json is not None:
+        # Parse the JSON-encoded style value
+        current_value = json.loads(current_value_json)
+    else:
+        # Initialize the value if it doesn't exist
+        current_value = 0
+
+    # Ensure the current value and increment amount are of compatible types
+    if not isinstance(current_value, (int, float)) or not isinstance(decrement_amount, (int, float)):
+        print(f"Cannot increment parameter {parameter} as it or the increment amount is not a number.")
+        return
+
+    # Increment the value by the specified amount
+    updated_value = current_value - decrement_amount
+
+    # Update the specific style parameter in Redis with the new incremented value
+    redis_connection.hset(link_key, style_key, json.dumps(updated_value))

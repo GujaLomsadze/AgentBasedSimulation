@@ -194,7 +194,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         layout: {
             mode: "hierarchy",
-            nodeSpacing: 200,
+            nodeSpacing: 300,
             gravity: {
                 from: "auto",
                 to: "nearestLockedNode",

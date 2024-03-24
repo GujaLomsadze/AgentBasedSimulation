@@ -16,7 +16,7 @@ from functions.readers.json_readers import read_json_file
 from functions.redis_wrapped.conn import get_redis_connection
 from functions.redis_wrapped.json_to_redis import json_to_redis, update_redis_with_graph
 from functions.traversal.main import find_edge_ids_for_path
-from simulations.sim import traverse_weighted_graph_n_times, traverse_any_given_graph_and_visualize
+from simulations.sim import traverse_weighted_graph_n_times, traverse_any_given_graph_and_visualize, simulate_errors
 
 json_nodes_filename = "data/nodes.json"  # TODO : Migrate to ArgParser
 
@@ -56,13 +56,21 @@ number_of_simulations = 1_000_000  # TODO : Migrate to ArgParser
 r = get_redis_connection()
 r.flushall()
 
+graph_with_errors, edges_with_errors = simulate_errors(graph_in=copy.deepcopy(graph), error_rate=1, error_weight_in=0.1)
+
+
+graph = graph_with_errors
+edges.extend(edges_with_errors)
+
 # Move Json Data to Redis for faster traversal and change
 json_to_redis(json_data=graph_to_json(graph), redis_conn=r)
 
-traverse_any_given_graph_and_visualize(redis_conn=r, method=sim_mode, graph=graph, edges=edges, start_node=start_node,
+traverse_any_given_graph_and_visualize(redis_conn=r, method=sim_mode, graph=graph, edges=edges,
+                                       start_node=start_node,
                                        parameter=parameter, number_of_simulations=10000,
                                        increment_amount=increment_amount)
 
+exit()
 
 # TODO: Move this to ArgParser
 FULL_PROBABILITY = True
@@ -93,8 +101,6 @@ updated_json_data = graph_to_json(graph)
 
 # update_redis_with_graph(graph=adjusted_graph, redis_conn=r)
 
-time.sleep(30)
-
 r.flushall()
 json_to_redis(json_data=updated_json_data, redis_conn=r)
 
@@ -120,8 +126,6 @@ min_prob = min(transition_probabilities.values())
 max_prob = max(transition_probabilities.values())
 
 COLOR_IN_ADVANCE_EDGES = False  # The node ID you want to update
-
-time.sleep(10)
 
 
 def color_the_pre_nodes():
